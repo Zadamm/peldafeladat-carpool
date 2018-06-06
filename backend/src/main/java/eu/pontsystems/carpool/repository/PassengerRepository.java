@@ -1,6 +1,6 @@
 package eu.pontsystems.carpool.repository;
 
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +15,7 @@ public interface PassengerRepository extends JpaRepository<Passenger, Integer> {
 	Passenger findByName(@Param("pname") String pname);
 	
 	@Query("select p.meetingPoints from Passenger p where p.id = :pid")	
-	List<MeetingPoint> getAllMeetingPointById(@Param("pid") Integer id);
+	Set<MeetingPoint> getAllMeetingPointById(@Param("pid") Integer id);
 }
 
 

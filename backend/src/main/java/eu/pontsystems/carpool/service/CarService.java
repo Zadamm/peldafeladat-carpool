@@ -13,4 +13,7 @@ public interface CarService {
 	
 	//saves a car and returns it's id
 	public Long save(Car c);
+	
+	//deletes one car by it's id, returns it's success
+	public boolean deleteById(Long id);
 }

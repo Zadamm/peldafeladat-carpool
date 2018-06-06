@@ -1,7 +1,7 @@
 <template>
-  <div class="newRoute">
+  <div class="modifyRoute">
 
-      <form>
+      <form v-if="dataloaded == 0">
         <div>
           <label>Név:</label>
           <input v-model="route.name" type="text">
@@ -24,8 +24,8 @@
             <label>Idő:</label>
             <input v-model="route.meetingPoints[0].time" type="text">
           </div>
-
-          <button v-on:click="addMeetingPoint($event)">Megálló hozzádása</button>
+          <h4>Megállók:</h4>
+          <input type="button" v-on:click="addMeetingPoint()" value="Megálló hozzádása"/>
           <div v-if="route.meetingPoints.length > 2" v-for="(meetingPoint,index) in meetingPointsWithoutStartEnd" v-bind:key="index">
             <div>
             <label>Hely:</label>
@@ -35,16 +35,17 @@
               <label>Idő:</label>
               <input v-model="meetingPoint.time" type="text">
             </div>
+            <input type="button" v-on:click="removeMeetingPoint(meetingPoint.id)" value="Megálló torlese"/>
           </div>
 
           <h4>Érkezés:</h4>
           <div>
             <label>Hely:</label>
-            <input v-model="route.meetingPoints[1].place" type="text" value="Pont">
+            <input v-model="route.meetingPoints[1].place" type="text">
           </div>
           <div>
             <label>Idő:</label>
-            <input v-model="route.meetingPoints[1].time" type="text" value="2018-06-01 08:00:00.000">
+            <input v-model="route.meetingPoints[1].time" type="text">
           </div>
 
           <button v-on:click="addRoute($event)">Útvonal hozzádása</button>
@@ -61,41 +62,82 @@ import {AXIOS} from './http-common'
 import moment from 'moment'
 
 export default {
-  name: 'NewRoute',
+  name: 'ModifyRoute',
 
   data () {
     return {
+      carId: 0,
       response: [],
       errors: [],
       route: {
         name: "Jani",
         emptyPlaces: 3,
         meetingPoints: []
-      }
+      },
+      meetingPointsWithoutStartEnd: [],
+      dataloaded: 1
     }
   },
-  created: function () {
-    this.route.meetingPoints.push(
-      {
-        place: "Moszkva",
-        time: "2018-06-01 07:00",
-      },
-      {
-        place: "Pont",
-        time: "2018-06-01 08:00",
-      }
-
-    )
-  },
   methods: {
-    addMeetingPoint: function(event){
-      if (event) event.preventDefault();
+    removeMeetingPoint: function (mpID) {
+      console.log("removeMP")
+      var mpL = this.route.meetingPoints
+      for(var i in mpL){
+        if(mpL[i].id == mpID){
+          mpL.splice(i,1)
+        }
+      }
+      this.meetingPointsWithoutStartEnd = this.route.meetingPoints.slice(2)
+      var self = this
+      AXIOS.get('/meetingpoints/' + mpID + '/remove')
+        .then(response => {
+          console.log("removedMP: " + mpID)
+        })
+        .catch(e => {
+          this.errors.push(e)
+        })
+    },
+    addMeetingPoint: function () {
+      console.log("addMP")      
       this.route.meetingPoints.push(
         {
           place: "Valahol",
           time: "2018-06-01 10:00",
-        }
-      );
+        }        
+      )
+      this.meetingPointsWithoutStartEnd = this.route.meetingPoints.slice(2)
+    },
+    getCar () { 
+      var self = this
+      this.dataloaded++
+      AXIOS.get(`/cars/` + self.carId)
+        .then(response => {
+          self.route = response.data
+          console.log(response.data)
+          self.getMeetingPoints()
+          self.dataloaded--
+        })
+        .catch(e => {
+          this.errors.push(e)
+        })
+    },
+    getMeetingPoints () {
+      console.log("getMettingPOints meghivodik")
+      var self = this
+      this.dataloaded++
+      AXIOS.get(`/cars/` + self.carId + '/meetingpoints')
+        .then(response => {
+          self.route.meetingPoints = response.data
+          console.log(response.data)
+          for (var j in self.route.meetingPoints) {
+            self.route.meetingPoints[j].time = moment(self.route.meetingPoints[j].time).format('YYYY-MM-DD HH:mm')
+          }
+          this.meetingPointsWithoutStartEnd = this.route.meetingPoints.slice(2)
+          self.dataloaded--
+        })
+        .catch(e => {
+          this.errors.push(e)
+        })
     },
     addRoute: function(event){
       if (event) event.preventDefault();
@@ -104,7 +146,7 @@ export default {
         this.route.meetingPoints[i].time = moment(this.route.meetingPoints[i].time).format()
       }
       var self = this;
-      AXIOS.post('/routes' + '?name=' + self.route.name + '&emptyPlaces=' + self.route.emptyPlaces + '&carID=0',  self.route.meetingPoints)
+      AXIOS.post('/routes' + '?name=' + self.route.name + '&emptyPlaces=' + self.route.emptyPlaces + '&carID=' + self.carId,  self.route.meetingPoints)
         .then(response => {
           // JSON responses are automatically parsed.
           console.log(response)
@@ -116,10 +158,10 @@ export default {
 
     }
   },
-  computed: {
-    meetingPointsWithoutStartEnd: function () {
-      return this.route.meetingPoints.slice(2);
-    }
+  created: function () {      
+    this.carId = this.$route.params.carId
+    this.getCar()
+    this.dataloaded--
   }
 }
 

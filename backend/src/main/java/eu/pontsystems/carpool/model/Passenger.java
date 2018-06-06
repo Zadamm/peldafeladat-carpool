@@ -1,13 +1,11 @@
 package eu.pontsystems.carpool.model;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @Entity
 @Table(name="PASSENGERS")
@@ -24,20 +22,25 @@ public class Passenger implements Serializable{
     @Column(name="name", nullable=false)
 	private String name;
 
-    @ManyToMany(cascade = {CascadeType.REFRESH})
+    @ManyToMany(cascade =  {
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.REFRESH,
+            CascadeType.PERSIST
+    }) 
     @JoinTable(
-        name = "meetingpoints_has_passengers", 
-        joinColumns = { @JoinColumn(name = "passengers_id") }, 
-        inverseJoinColumns = { @JoinColumn(name = "meetingpoints_id") }
+            name = "meetingpoints_has_passengers", 
+            joinColumns = { @JoinColumn(name = "passengers_id") }, 
+            inverseJoinColumns = { @JoinColumn(name = "meetingpoints_id") }
     )
     @JsonIgnore
-    private List<MeetingPoint> meetingPoints;
+    private Set<MeetingPoint> meetingPoints;
 	
     public Passenger(){
         super();
     }
 
-	public Passenger(Integer id, String name, List<MeetingPoint> meetingPoints) {
+	public Passenger(Integer id, String name, Set<MeetingPoint> meetingPoints) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -60,11 +63,11 @@ public class Passenger implements Serializable{
 		this.name = name;
 	}
 
-	public List<MeetingPoint> getMeetingPoints() {
+	public Set<MeetingPoint> getMeetingPoints() {
 		return meetingPoints;
 	}
 
-	public void setMeetingPoints(List<MeetingPoint> meetingPoints) {
+	public void setMeetingPoints(Set<MeetingPoint> meetingPoints) {
 		this.meetingPoints = meetingPoints;
 	}
 

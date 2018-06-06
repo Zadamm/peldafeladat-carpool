@@ -2,7 +2,7 @@ package eu.pontsystems.carpool.service;
 
 import eu.pontsystems.carpool.model.Passenger;
 
-import java.util.List;
+import java.util.Set;
 
 import eu.pontsystems.carpool.model.MeetingPoint;
 
@@ -18,5 +18,8 @@ public interface PassengerService {
 	public Passenger findPassengerByName(String name);
 	
 	//return all of the meetingpoint of one person by their id
-	public List<MeetingPoint> getAllMeetingPointsById(Integer id);
+	public Set<MeetingPoint> getAllMeetingPointsById(Integer id);
+	
+	//delete a passenger's meetingpoint
+	public void deleteMeetingPointOfPassenger(Integer pid, Integer mpid);
 }

@@ -3,6 +3,7 @@ package eu.pontsystems.carpool.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.*;
 
@@ -35,11 +36,16 @@ public class MeetingPoint implements Serializable{
     @JsonIgnore
     private Car car;
 
-    @ManyToMany(cascade = {CascadeType.REFRESH}, mappedBy = "meetingPoints")
+    @ManyToMany(cascade =  {
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.REFRESH,
+            CascadeType.PERSIST
+    }, mappedBy = "meetingPoints")
     @JsonIgnore
-    private List<Passenger> passengers;
+    private Set<Passenger> passengers;
 
-	public MeetingPoint(Integer id, String place, Date time, Car car, List<Passenger> passengers) {
+	public MeetingPoint(Integer id, String place, Date time, Car car, Set<Passenger> passengers) {
 		super();
 		this.id = id;
 		this.place = place;
@@ -84,11 +90,11 @@ public class MeetingPoint implements Serializable{
 		this.car = car;
 	}
     
-	public List<Passenger> getPassengers() {
+	public Set<Passenger> getPassengers() {
 		return passengers;
 	}
 
-	public void setPassengers(List<Passenger> passengers) {
+	public void setPassengers(Set<Passenger> passengers) {
 		this.passengers = passengers;
 	}
 

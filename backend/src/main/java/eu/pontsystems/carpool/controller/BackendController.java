@@ -1,7 +1,9 @@
 package eu.pontsystems.carpool.controller;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +53,15 @@ public class BackendController {
         return c;
     }
     
+    @GetMapping(path="/deletecars/{id}")
+    public @ResponseBody void deleteCarById(@PathVariable("id") Long id) {
+        LOG.info("Deleteing car with id: " + id + " from database.");
+        Boolean success = carService.deleteById(id);
+        LOG.info("Torles sikerult: " + success.toString());
+    }
+    
     @GetMapping(path="/cars/{id}/meetingpoints")
-    public @ResponseBody List<MeetingPoint> getCarMeetingPointsById(@PathVariable("id") Long id) {
+    public @ResponseBody List<MeetingPoint> getCarsMeetingPointsById(@PathVariable("id") Long id) {
         LOG.info("Reading car's meetingpoints with id " + id + " from database.");
         Car c = carService.getCarById(id);
         List<MeetingPoint> mpList = c.getMeetingPoints();
@@ -60,11 +69,30 @@ public class BackendController {
     }
     
     @GetMapping(path="/meetingpoints/{id}/passengers")
-    public @ResponseBody List<Passenger> getPassengersByMeetingPointsId(@PathVariable("id") Integer id) {
-        LOG.info("Reading car's meetingpoints with id " + id + " from database.");
+    public @ResponseBody Set<Passenger> getPassengersByMeetingPointsId(@PathVariable("id") Integer id) {
+        LOG.info("Reading car's meetingpoints's passengers with mid " + id + " from database.");
         MeetingPoint mp = mpService.getMeetingPointById(id);
-        List<Passenger> pList = mp.getPassengers();
-        return pList;
+        Set<Passenger> pSet = mp.getPassengers();
+		if(pSet.isEmpty()) {
+			LOG.info("ures a PassengerSet");
+		} else {
+	        for(Passenger p : pSet) {
+	        	LOG.info("Utasnev: " + p.getName());
+	        }
+		}
+        LOG.info(pSet.toString());
+        return pSet;
+    }
+    
+    @GetMapping(path="/meetingpoints/{id}/remove")
+    public void removeMeetingPointByID(@PathVariable("id") Integer id) {
+        LOG.info("removing meetingpoints with mid " + id + " from database.");
+        MeetingPoint mp = mpService.getMeetingPointById(id);
+        Set<Passenger> pSet = mp.getPassengers();
+        for(Passenger p : pSet) {
+        	passengerService.deleteMeetingPointOfPassenger(p.getId(), id);
+        }
+        mpService.remove(mp);            	
     }
     
     @GetMapping(path="/cars")
@@ -83,21 +111,61 @@ public class BackendController {
     }
     
     @PostMapping(path="/routes")
-    public void save(@RequestBody List<MeetingPoint> mpList, @RequestParam String name, @RequestParam int emptyPlaces) {
-    	Car car = new Car();
-    	car.setName(name);
-    	car.setEmptyPlaces(emptyPlaces);
-        car.setId(carService.save(car)); //saves the car and returns it's ID to modify the local Car variable	
-    	if(mpList != null) {
-	    	for (MeetingPoint mp : mpList) {
-	    		LOG.info(mp.getPlace());	    		
-	    		mp.setCar(car);
+    public void saveRoute(@RequestBody List<MeetingPoint> mpList, @RequestParam String name, @RequestParam int emptyPlaces, @RequestParam Long carID) {
+    	if(carID == 0) { 
+    		//new car route
+	    	Car car = new Car();
+	    	car.setName(name);
+	    	car.setEmptyPlaces(emptyPlaces);
+	        car.setId(carService.save(car)); //saves the car and returns it's ID to modify the local Car variable	
+	    	if(mpList != null) {
+		    	for (MeetingPoint mp : mpList) {
+		    		LOG.info("save meetingpoints:");	 
+		    		LOG.info(mp.getPlace());	    		
+		    		mp.setCar(car);
+		    	}
+		    	car.setMeetingPoints(mpList);
+	    	}else {
+	    		LOG.info("ures meetingpoint lista");
 	    	}
-	    	car.setMeetingPoints(mpList);
-    	}else {
-    		LOG.info("ures meetingpoint lista");
+	        carService.save(car);
+    	} else { 
+    		//modify an existing car route
+    		Car car = carService.getCarById(carID);
+	    	car.setName(name);
+	    	car.setEmptyPlaces(emptyPlaces);
+	    	/*
+	    	List<Integer> modifiedMpIDList = new ArrayList();
+	    	
+	    	//first 2 elemenet has to be there
+	    	car.setMeetingPoints(mpList.subList(0, 2));
+	    	
+	    	//checking the changes of the rest of the elements
+	    	for(MeetingPoint mpOld : car.getMeetingPoints().subList(2, car.getMeetingPoints().size())) {
+	    		for(MeetingPoint mpNew : mpList.subList(2, mpList.size())) {
+	    			
+	    		}
+	    	}
+	    	*/
+    		//checking if the meetingpoint's list has a removed element
+    		//if(car.getMeetingPoints().size() > mpList.size()) {
+	    	car.setMeetingPoints(mpList);	
+	    	if(mpList != null) {
+		    	for (MeetingPoint mp : mpList) {
+		    		LOG.info("save meetingpoints:");	 
+		    		LOG.info(mp.getPlace());	    		
+		    		mp.setCar(car);
+		    	}
+		    	car.setMeetingPoints(mpList);
+	    	}else {
+	    		LOG.info("ures meetingpoint lista");
+	    	}
+	    	carService.save(car);
+    		//} else {
+    			//List<Integer> removedMpIDList = new ArrayList<>();
+    			
+    		//}
     	}
-        carService.save(car);
     }
     
     @PostMapping(path="/addpassengers")
@@ -116,7 +184,7 @@ public class BackendController {
     		
     		LOG.info("nem null");
 
-    		List<MeetingPoint> allMP = passengerService.getAllMeetingPointsById(currentP.getId());
+    		Set<MeetingPoint> allMP = passengerService.getAllMeetingPointsById(currentP.getId());
     		
     		allMP.add(currentMP);
     		
@@ -128,7 +196,7 @@ public class BackendController {
     	}else{	
     		LOG.info("meg nincs ilyen passenger"); 
     		
-    		List<MeetingPoint> allMP = new ArrayList();
+    		Set<MeetingPoint> allMP = new HashSet();
 
 			allMP.add(currentMP);
     		

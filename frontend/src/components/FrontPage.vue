@@ -6,8 +6,9 @@
       <th>Útvonal</th>
       <th>Üres helyek</th>
       <th>Csatlakozás</th>
-      
-      <tr v-if="dataloaded"
+      <th>Torles</th>
+      <th>Modositas</th>
+      <tr v-if="dataloaded == 0"
           v-for="(car,index) in carList"
           v-bind:key="index"
           v-bind:item="car">
@@ -22,9 +23,17 @@
             </div>
           </div>
         </td>
-        <td>{{car.emptyPlaces}}</td>
         <td>
-        <router-link :to="{ name: 'JoinCar', params:{'carId': car.id}}" tag="button">Csatlakozás</router-link>
+          {{car.emptyPlaces}}
+        </td>
+        <td>
+          <router-link :to="{ name: 'JoinCar', params:{'carId': car.id}}" tag="button">Csatlakozás</router-link>
+        </td>
+        <td>
+          <button v-on:click="deleteCar(car.id)">Torol</button>
+        </td>
+        <td>
+          <router-link :to="{ name: 'ModifyRoute', params:{'carId': car.id}}" tag="button">Modositas</router-link>
         </td>
       </tr>
     </table>
@@ -35,6 +44,7 @@
 <script>
 
 import {AXIOS} from './http-common'
+import moment from 'moment'
 
 export default {
   name: 'FrontPage',
@@ -43,15 +53,17 @@ export default {
       carList: [],
       response: [],
       errors: [],
-      dataloaded: false
+      dataloaded: 1 // tracking the requests of the data, when it reaches 0 all the requests responded
     }
   },
   methods: {
     getAllCar () {
       var self = this
-      console.log('getAllCar meghívódik')
+      this.dataloaded++
+      console.log('getAllCar meghivodik')
       AXIOS.get(`/cars`)
         .then(response => {
+          self.dataloaded--
           self.carList = response.data
           console.log('/cars response data: ')
           console.log(response.data)
@@ -67,9 +79,11 @@ export default {
     },
     getACarMeetingPointList (carID) {
       var self = this
-      console.log('getACarMeetingPointList meghívódik')
+      this.dataloaded++
+      console.log('getACarMeetingPointList meghivodik')
       AXIOS.get(`/cars/` + carID + '/meetingpoints')
         .then(response => {
+          self.dataloaded--
           console.log('meetingpoints response data: ')
           console.log(response.data)
 
@@ -80,6 +94,7 @@ export default {
               console.log('carListba irt meetingpoint adat: ')
               console.log(car.meetingPoints)
               for (var j in car.meetingPoints) {
+                car.meetingPoints[j].time = moment(car.meetingPoints[j].time).format('YY-MM-DD HH:mm')
                 self.getPassenegersByMeetingPoint(car.meetingPoints[j].id, carID)
               }
             }
@@ -91,9 +106,11 @@ export default {
     },
     getPassenegersByMeetingPoint (mpID, carID) {
       var self = this
-      console.log('getPassenegersByMeetingPoint meghívódik')
+      this.dataloaded++
+      console.log('getPassenegersByMeetingPoint meghivodik')
       AXIOS.get('/meetingpoints/' + mpID + '/passengers')
         .then(response => {
+          self.dataloaded--
           console.log('passengers response data: ')
           console.log(response.data)
           for (var i in self.carList) {
@@ -109,20 +126,18 @@ export default {
               }
             }
           }
-
-          // making sure all the data is loaded before sending to the HTML elements
-
-          // length of the lists with the data
-          var carListLength = self.carList.length - 1
-          var lastMeetingPointPlace = self.carList[carListLength].meetingPoints.length - 1
-
-          // last car's last meetingpoint
-          var lastmpID = self.carList[carListLength].meetingPoints[lastMeetingPointPlace].id
-
-          // check if the current meetingpointID is the same as the last meetingpointID of the last car
-          if (mpID === lastmpID) {
-            self.dataloaded = true
-          }
+        })
+        .catch(e => {
+          this.errors.push(e)
+        })
+    },
+    deleteCar (carID) {
+      var self = this
+      console.log('deleteCar meghivodik')
+      AXIOS.get('/deletecars/' + carID)
+        .then(response => {
+          self.dataloaded = false
+          self.getAllCar()
         })
         .catch(e => {
           this.errors.push(e)
@@ -132,6 +147,7 @@ export default {
   created: function () {
     console.log('created meghívódik')
     this.getAllCar()
+    this.dataloaded--
     console.log('CarList keszen: ')
     console.log(this.carList)
   }

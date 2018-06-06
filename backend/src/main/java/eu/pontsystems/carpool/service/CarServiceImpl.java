@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import eu.pontsystems.carpool.model.Car;
+import eu.pontsystems.carpool.model.MeetingPoint;
+import eu.pontsystems.carpool.model.Passenger;
 import eu.pontsystems.carpool.repository.CarRepository;
 
 @Service
@@ -19,6 +21,9 @@ public class CarServiceImpl implements CarService{
 	
 	@Autowired
 	private CarRepository carRepository;
+	
+	@Autowired
+	private PassengerService pService;
 		
 	@Override
 	public Car getCarById(Long id) {
@@ -39,6 +44,25 @@ public class CarServiceImpl implements CarService{
 	@Override
 	public Long save(Car c) {
 		return carRepository.save(c).getId();
+	}
+	
+
+	@Override
+	public boolean deleteById(Long id) {
+		Car c = carRepository.getOne(id);
+		
+		for(MeetingPoint mp : c.getMeetingPoints()) {
+			for(Passenger p : mp.getPassengers()) {
+				pService.deleteMeetingPointOfPassenger(p.getId(), mp.getId());
+			}
+		}
+		
+		try {
+			carRepository.delete(c);
+		} catch(IllegalArgumentException e) {
+			return false;
+		}
+		return true;
 	}
 	
 }

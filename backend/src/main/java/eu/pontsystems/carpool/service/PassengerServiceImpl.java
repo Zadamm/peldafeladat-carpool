@@ -1,6 +1,6 @@
 package eu.pontsystems.carpool.service;
 
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,8 +33,23 @@ public class PassengerServiceImpl implements PassengerService{
 	}
 
 	@Override
-	public List<MeetingPoint> getAllMeetingPointsById(Integer id) {
+	public Set<MeetingPoint> getAllMeetingPointsById(Integer id) {
 		return passengerRepository.getAllMeetingPointById(id);
+	}
+
+	@Override
+	public void deleteMeetingPointOfPassenger(Integer pid, Integer mpid) {
+		Passenger p = passengerRepository.getOne(pid);
+		Set<MeetingPoint> mpSet = p.getMeetingPoints();
+		for(MeetingPoint mp : mpSet) {
+			if(mp.getId() == mpid) {
+				mpSet.remove(mp);
+				break;
+			}
+		}
+		
+		
+		passengerRepository.save(p);		
 	}
 
 }
