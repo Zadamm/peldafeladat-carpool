@@ -134,21 +134,6 @@ public class BackendController {
     		Car car = carService.getCarById(carID);
 	    	car.setName(name);
 	    	car.setEmptyPlaces(emptyPlaces);
-	    	/*
-	    	List<Integer> modifiedMpIDList = new ArrayList();
-	    	
-	    	//first 2 elemenet has to be there
-	    	car.setMeetingPoints(mpList.subList(0, 2));
-	    	
-	    	//checking the changes of the rest of the elements
-	    	for(MeetingPoint mpOld : car.getMeetingPoints().subList(2, car.getMeetingPoints().size())) {
-	    		for(MeetingPoint mpNew : mpList.subList(2, mpList.size())) {
-	    			
-	    		}
-	    	}
-	    	*/
-    		//checking if the meetingpoint's list has a removed element
-    		//if(car.getMeetingPoints().size() > mpList.size()) {
 	    	car.setMeetingPoints(mpList);	
 	    	if(mpList != null) {
 		    	for (MeetingPoint mp : mpList) {
@@ -161,10 +146,6 @@ public class BackendController {
 	    		LOG.info("ures meetingpoint lista");
 	    	}
 	    	carService.save(car);
-    		//} else {
-    			//List<Integer> removedMpIDList = new ArrayList<>();
-    			
-    		//}
     	}
     }
     
@@ -204,5 +185,20 @@ public class BackendController {
     		
 			passengerService.save(passenger);   
     	}    	
+    }
+    
+    @GetMapping(path="/passengers")
+    public @ResponseBody List<Passenger> getAllPassenger() {
+    	return passengerService.getAllPassenger();
+    }
+    
+    @GetMapping(path="/passengers/{id}/meetingpoints")
+    public @ResponseBody Set<MeetingPoint> getMeetingPointOfPassenger(@PathVariable("id") Integer id) {
+    	return passengerService.getAllMeetingPointsById(id);
+    }
+    
+    @GetMapping(path="/passengers/{pid}/meetingpoints/{mid}/remove")
+    public void removeMeetingPointOfPassenger(@PathVariable("pid") Integer pid, @PathVariable("mid") Integer mid) {
+    	passengerService.deleteMeetingPointOfPassenger(pid, mid);
     }
 }

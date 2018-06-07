@@ -4,6 +4,7 @@ import FrontPage from '@/components/FrontPage'
 import NewRoute from '@/components/NewRoute'
 import JoinCar from '@/components/JoinCar'
 import ModifyRoute from '@/components/ModifyRoute'
+import PassengerList from '@/components/PassengerList'
 
 Vue.use(Router)
 
@@ -31,6 +32,11 @@ export default new Router({
       name: 'ModifyRoute',
       props: true,
       component: ModifyRoute
+    },
+    {
+      path: '/PassengerList',
+      name: 'PassengerList',
+      component: PassengerList
     }
   ]
 })

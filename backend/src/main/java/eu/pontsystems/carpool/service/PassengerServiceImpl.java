@@ -1,5 +1,6 @@
 package eu.pontsystems.carpool.service;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,11 @@ public class PassengerServiceImpl implements PassengerService{
 		
 		
 		passengerRepository.save(p);		
+	}
+
+	@Override
+	public List<Passenger> getAllPassenger() {
+		return passengerRepository.findAll();
 	}
 
 }

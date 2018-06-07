@@ -1,6 +1,7 @@
 <template>
   <div class="front">
     <router-link :to="{ name: 'NewRoute'}" tag="button">Új útvonal</router-link>
+    <router-link :to="{ name: 'PassengerList'}" tag="button">Utasok</router-link>
     <table>
       <th>Név</th>
       <th>Útvonal</th>
