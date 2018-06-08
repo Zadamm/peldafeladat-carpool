@@ -5,6 +5,7 @@ import NewRoute from '@/components/NewRoute'
 import JoinCar from '@/components/JoinCar'
 import ModifyRoute from '@/components/ModifyRoute'
 import PassengerList from '@/components/PassengerList'
+import Login from '@/components/Login'
 
 Vue.use(Router)
 
@@ -12,7 +13,7 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/',
+      path: '/FrontPage',
       name: 'FrontPage',
       component: FrontPage
     },
@@ -37,6 +38,11 @@ export default new Router({
       path: '/PassengerList',
       name: 'PassengerList',
       component: PassengerList
+    },
+    {
+      path: '/',
+      name: 'Login',
+      component: Login
     }
   ]
 })

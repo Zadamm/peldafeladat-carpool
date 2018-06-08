@@ -69,7 +69,7 @@ export default {
               self.passengerList[i].meetingPoints = response.data
               console.log('passengers meetingpointba irt adat: ')
               console.log(self.passengerList[i].meetingPoints)
-              for(var j in self.passengerList[i].meetingPoints){
+              for (var j in self.passengerList[i].meetingPoints) {
                 self.passengerList[i].meetingPoints[j].time = moment(self.passengerList[i].meetingPoints[j].time).format('YY-MM-DD HH:mm')
               }
             }
@@ -82,16 +82,15 @@ export default {
         })
     },
     deleteMeetingPoint (mid, pid) {
-      var self = this
       console.log('deleteMeetingPoint meghivodik')
       AXIOS.get(`/passengers/` + pid + '/meetingpoints/' + mid + '/remove')
         .then(response => {
-          console.log('passengers meetingpoint torlodott') 
+          console.log('passengers meetingpoint torlodott')
         })
         .catch(e => {
           this.errors.push(e)
         })
-      this.getAllPassenger
+      this.getAllPassenger()
     }
   },
   created: function () {

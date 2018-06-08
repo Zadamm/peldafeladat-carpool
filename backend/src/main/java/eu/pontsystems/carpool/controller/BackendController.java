@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import eu.pontsystems.carpool.model.*;
 import eu.pontsystems.carpool.service.*;
 
-
-
 @RestController()
 @RequestMapping("/api")
 public class BackendController {
@@ -200,5 +198,10 @@ public class BackendController {
     @GetMapping(path="/passengers/{pid}/meetingpoints/{mid}/remove")
     public void removeMeetingPointOfPassenger(@PathVariable("pid") Integer pid, @PathVariable("mid") Integer mid) {
     	passengerService.deleteMeetingPointOfPassenger(pid, mid);
+    }    
+   
+    @PostMapping(path="/login")
+    public void login(@RequestParam String userName, @RequestParam String password) {
+    	LOG.info("fogadott adatok: " + userName + " jelszo: " + password);
     }
 }
