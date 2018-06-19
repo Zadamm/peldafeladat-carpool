@@ -16,4 +16,7 @@ public interface CarService {
 	
 	//deletes one car by it's id, returns it's success
 	public boolean deleteById(Long id);
+	
+	//find a car by it's owner's name
+	public Car getByName(String name);
 }

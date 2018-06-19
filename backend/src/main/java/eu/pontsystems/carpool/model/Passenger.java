@@ -39,6 +39,11 @@ public class Passenger implements Serializable{
     public Passenger(){
         super();
     }
+    
+    public Passenger(String name) {
+    	super();
+    	this.name = name;
+    }
 
 	public Passenger(Integer id, String name, Set<MeetingPoint> meetingPoints) {
 		super();

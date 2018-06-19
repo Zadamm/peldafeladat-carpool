@@ -102,10 +102,13 @@ public class BackendController {
     	LOG.info("Egy car-okhoz tartozó meetingpoint nevek:");
     	for(Car c : carList) {
     		LOG.info("Nev: " + c.getName());
-    		List<MeetingPoint> mpl = c.getMeetingPoints();
-    		for(MeetingPoint mp : mpl) {
-    			LOG.info(mp.getPlace());
+    		if(c.getMeetingPoints() != null) {
+	    		List<MeetingPoint> mpl = c.getMeetingPoints();
+	    		for(MeetingPoint mp : mpl) {
+	    			LOG.info(mp.getPlace());
+	    		}
     		}
+    		
     	}
         return carList;
     }
@@ -177,7 +180,7 @@ public class BackendController {
     	}else{	
     		LOG.info("meg nincs ilyen passenger"); 
     		
-    		Set<MeetingPoint> allMP = new HashSet();
+    		Set<MeetingPoint> allMP = new HashSet<MeetingPoint>();
 
 			allMP.add(currentMP);
     		

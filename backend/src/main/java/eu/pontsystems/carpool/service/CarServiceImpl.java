@@ -2,6 +2,8 @@ package eu.pontsystems.carpool.service;
 
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +26,15 @@ public class CarServiceImpl implements CarService{
 	
 	@Autowired
 	private PassengerService pService;
-		
+	
 	@Override
 	public Car getCarById(Long id) {
-		//System.out.println("carservice impl");
 		return carRepository.getOne(id);
-		/*
-		List<Car> vv = carRepository.findAll();
-		System.out.println(vv.size());
-		return vv.get(id);
-		*/
+	}
+	
+	@Override
+	public Car getByName(String name) {
+		return carRepository.findByName(name);
 	}
 	
 	@Override
@@ -49,20 +50,28 @@ public class CarServiceImpl implements CarService{
 
 	@Override
 	public boolean deleteById(Long id) {
-		Car c = carRepository.getOne(id);
-		
+		Car c = new Car();
+		try {
+			c = carRepository.getOne(id);
+		} catch(EntityNotFoundException e) {
+			LOG.info("Entity not found in the database");
+			return false;
+		}
 		for(MeetingPoint mp : c.getMeetingPoints()) {
 			for(Passenger p : mp.getPassengers()) {
 				pService.deleteMeetingPointOfPassenger(p.getId(), mp.getId());
 			}
 		}
-		
+		boolean retval = true;
 		try {
 			carRepository.delete(c);
 		} catch(IllegalArgumentException e) {
-			return false;
+			LOG.info("Deletition was given null entity");
+			retval = false;
+			throw e;//?????
 		}
-		return true;
+		return retval;
+		
 	}
 	
 }

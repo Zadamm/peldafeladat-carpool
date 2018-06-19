@@ -5,12 +5,7 @@ import java.util.List;
 
 import javax.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @Entity
 @Table(name="CARS")
@@ -30,12 +25,23 @@ public class Car implements Serializable{
     @Column(name="emptyplaces")
 	private int emptyPlaces;
     
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "car")
+	@OneToMany(cascade =  {
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.REFRESH,
+            CascadeType.REMOVE,
+            CascadeType.PERSIST
+    }, fetch = FetchType.LAZY, mappedBy = "car")
 	@JsonIgnore
     private List<MeetingPoint> meetingPoints;
 	
     public Car() {
     	super();
+    }
+    
+    public Car(String name) {
+    	super();
+    	this.name = name;
     }
 
 	public Car(Long id, String name, int emptyPlaces, List<MeetingPoint> meetingPoints) {
